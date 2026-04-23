@@ -1,75 +1,114 @@
 import numpy as np
 import pandas as pd
 
-# Configurar semilla para reproducibilidad
+# Configuración inicial
 np.random.seed(42)
-n_samples = 5000
+n_registros = 54700
 
-# Perfiles base exactos de tu tabla
+# ── DICCIONARIO MAESTRO BASADO EN EL PDF (CON VARIABLES NUMÉRICAS) ────────────
+# Se definen los valores de metro cuadrado por estrato y las clasificaciones numéricas.
 sectores_info = {
-    'Comuna 1 (Centro Histórico)': {'parq_pred': 0, 'precio': 300000000, 'estrato_min': 2, 'estrato_max': 4, 'area': 70, 'dist': 1.5, 'tipo': 'Urbana', 'conj_pred': 0, 'topo': 'Mayormente Plana'},
-    'Comuna 2 (San Antonio)': {'parq_pred': 1, 'precio': 450000000, 'estrato_min': 3, 'estrato_max': 5, 'area': 80, 'dist': 3.5, 'tipo': 'Urbana', 'conj_pred': 1, 'topo': 'Plana'},
-    'Comuna 3 (Uribe Jaramillo)': {'parq_pred': 0, 'precio': 250000000, 'estrato_min': 2, 'estrato_max': 3, 'area': 60, 'dist': 2.0, 'tipo': 'Urbana', 'conj_pred': 0, 'topo': 'Plana y Ondulada'},
-    'Comuna 4 (El Porvenir)': {'parq_pred': 1, 'precio': 350000000, 'estrato_min': 3, 'estrato_max': 4, 'area': 65, 'dist': 2.5, 'tipo': 'Urbana', 'conj_pred': 1, 'topo': 'Plana'},
-    'Corregimiento Occidente (Llanogrande)': {'parq_pred': 1, 'precio': 3500000000, 'estrato_min': 5, 'estrato_max': 6, 'area': 350, 'dist': 12.0, 'tipo': 'Rural', 'conj_pred': 1, 'topo': 'Plana y levemente ondulada'},
-    'Corregimiento Sur (Cabeceras)': {'parq_pred': 1, 'precio': 1500000000, 'estrato_min': 4, 'estrato_max': 6, 'area': 200, 'dist': 14.0, 'tipo': 'Rural', 'conj_pred': 1, 'topo': 'Ondulada'},
-    'Corregimiento Norte (Galicia/La Mosca)': {'parq_pred': 1, 'precio': 600000000, 'estrato_min': 2, 'estrato_max': 4, 'area': 150, 'dist': 10.0, 'tipo': 'Rural', 'conj_pred': 0, 'topo': 'Montañosa y Quebrada'},
-    'Corregimiento Centro (Río Abajo)': {'parq_pred': 1, 'precio': 800000000, 'estrato_min': 3, 'estrato_max': 4, 'area': 180, 'dist': 6.0, 'tipo': 'Rural', 'conj_pred': 0, 'topo': 'Ondulada'}
+    'Comuna 1 (Centro Histórico)': {
+        'estratos': [2, 3, 4],
+        'precio_m2_estrato': {2: 3_500_000, 3: 4_100_000, 4: 4_800_000},
+        'area_mean': 134.8, 'area_std': 25.0, 'dist': 1.5,
+        'tipo_num': 1, 'conj_num': 0, 'topo_num': 0, 'parq_num': 0
+    },
+    'Comuna 2 (San Antonio)': {
+        'estratos': [3, 4, 5],
+        'precio_m2_estrato': {3: 4_500_000, 4: 4_900_000, 5: 5_500_000},
+        'area_mean': 146.5, 'area_std': 28.0, 'dist': 3.5,
+        'tipo_num': 1, 'conj_num': 0, 'topo_num': 0, 'parq_num': 1
+    },
+    'Comuna 3 (Uribe Jaramillo)': {
+        'estratos': [2, 3],
+        'precio_m2_estrato': {2: 5_000_000, 3: 6_000_000},
+        'area_mean': 106.45, 'area_std': 20.0, 'dist': 12.0,
+        'tipo_num': 1, 'conj_num': 0, 'topo_num': 1, 'parq_num': 1
+    },
+    'Comuna 4 (El Porvenir)': {
+        'estratos': [3, 4],
+        'precio_m2_estrato': {3: 4_600_000, 4: 5_200_000},
+        'area_mean': 157.27, 'area_std': 30.0, 'dist': 2.5,
+        'tipo_num': 1, 'conj_num': 1, 'topo_num': 0, 'parq_num': 1
+    },
+    'Corregimiento Occidente (Llanogrande)': {
+        'estratos': [5, 6],
+        'precio_m2_estrato': {5: 7_200_000, 6: 8_500_000},
+        'area_mean': 546.86, 'area_std': 120.0, 'dist': 12.0,
+        'tipo_num': 0, 'conj_num': 1, 'topo_num': 1, 'parq_num': 1
+    },
+    'Corregimiento Sur (Cabeceras)': {
+        'estratos': [4, 5, 6],
+        'precio_m2_estrato': {4: 10_000_000, 5: 12_000_000, 6: 14_000_000},
+        'area_mean': 327.6, 'area_std': 80.0, 'dist': 14.0,
+        'tipo_num': 0, 'conj_num': 1, 'topo_num': 2, 'parq_num': 1
+    },
+    'Corregimiento Norte (Galicia/La Mosca)': {
+        'estratos': [2, 3, 4],
+        'precio_m2_estrato': {2: 6_500_000, 3: 7_600_000, 4: 8_500_000},
+        'area_mean': 213.0, 'area_std': 45.0, 'dist': 10.0,
+        'tipo_num': 0, 'conj_num': 0, 'topo_num': 3, 'parq_num': 1
+    },
+    'Corregimiento Centro (Río Abajo)': {
+        'estratos': [3, 4],
+        'precio_m2_estrato': {3: 1_200_000, 4: 1_600_000},
+        'area_mean': 1135.0, 'area_std': 250.0, 'dist': 6.0,
+        'tipo_num': 0, 'conj_num': 0, 'topo_num': 2, 'parq_num': 1
+    }
 }
 
-# 1. Seleccionar sectores aleatoriamente
+# ── GENERACIÓN DE DATOS ───────────────────────────────────────────────────────
 sectores_list = list(sectores_info.keys())
-sectores_generados = np.random.choice(sectores_list, size=n_samples)
+sectores_seeds = np.random.choice(sectores_list, size=n_registros)
 
-# Diccionario para almacenar los datos
-data = {
-    'Sector': [], 
-    'Tiene_parqueadero': [], 
-    'Precio_venta_COP': [], 
-    'Estrato': [], 
-    'Area_construida_m2': [], 
-    'Distancia_CC_San_Nicolas_km': [], 
-    'Urbana_Rural': [], 
-    'Tiene_conjunto_cerrado': [], 
-    'Topografia': []
-}
+data_final = []
 
-# 2. Generar datos usando distribuciones estadísticas
-for sector in sectores_generados:
-    info = sectores_info[sector]
-    data['Sector'].append(sector)
+for sector_nombre in sectores_seeds:
+    s = sectores_info[sector_nombre]
     
-    # Parqueadero (1 = Sí, 0 = No) con 85% de probabilidad de seguir la regla
-    prob_parq = [0.15, 0.85] if info['parq_pred'] == 1 else [0.85, 0.15]
-    data['Tiene_parqueadero'].append(np.random.choice([0, 1], p=prob_parq))
+    # 1. Estrato
+    estrato = int(np.random.choice(s['estratos']))
     
-    # Precio (Distribución normal centrada en tu promedio)
-    precio = np.random.normal(loc=info['precio'], scale=info['precio'] * 0.15)
-    data['Precio_venta_COP'].append(int(round(max(175000000, precio)))) 
+    # 2. Generación de Área
+    area = np.random.normal(s['area_mean'], s['area_std'])
+    area = max(area, 40.0) # Aseguramos que no haya propiedades irreales (menores a 40m2)
     
-    # Estrato
-    data['Estrato'].append(np.random.randint(info['estrato_min'], info['estrato_max'] + 1))
+    # 3. Cálculo del Precio (Área * Valor m² según Estrato y Sector)
+    valor_m2_base = s['precio_m2_estrato'][estrato]
+    precio_estimado = area * valor_m2_base
     
-    # Área construida (m2)
-    area = np.random.normal(loc=info['area'], scale=info['area'] * 0.15)
-    data['Area_construida_m2'].append(round(max(20, area), 1))
+    # Ruido aleatorio (+/- 5%) para simular dinámicas del mercado inmobiliario
+    ruido_mercado = np.random.uniform(0.95, 1.05)
+    precio_final = round((precio_estimado * ruido_mercado), -6) # Redondeado a millones
     
-    # Distancia a C.C. San Nicolás (km)
-    dist = np.random.normal(loc=info['dist'], scale=info['dist'] * 0.15)
-    data['Distancia_CC_San_Nicolas_km'].append(round(max(0.5, dist), 2))
-    
-    # Urbana / Rural
-    data['Urbana_Rural'].append(info['tipo'])
-    
-    # Conjunto cerrado (1 = Sí, 0 = No)
-    prob_conj = [0.15, 0.85] if info['conj_pred'] == 1 else [0.85, 0.15]
-    data['Tiene_conjunto_cerrado'].append(np.random.choice([0, 1], p=prob_conj))
-    
-    # Topografía
-    data['Topografia'].append(info['topo'])
+    # Agregar al array principal
+    data_final.append({
+        "Sector": sector_nombre,
+        "Tiene_Parqueadero_Num": s['parq_num'],
+        "Precio_Venta_COP": int(precio_final),
+        "Estrato": estrato,
+        "Area_Construida_m2": round(area, 2),
+        "Distancia_CC_SanNicolas_km": s['dist'],
+        "Conjunto_Cerrado_Num": s['conj_num'],
+        "Urbana_Rural_Num": s['tipo_num'],
+        "Topografia_Num": s['topo_num']
+    })
 
-# 3. Convertir a DataFrame y guardar
-df = pd.DataFrame(data)
-df.to_csv('dataset_rionegro_original.csv', index=False)
+# ── CREACIÓN Y GUARDADO DEL DATAFRAME ─────────────────────────────────────────
+df = pd.DataFrame(data_final)
 
-print("¡Dataset de 5000 datos generado exitosamente con tus variables exactas!")
+# Asegurar el mismo orden de la tabla original del PDF
+columnas_orden = [
+    "Sector", "Tiene_Parqueadero_Num", "Precio_Venta_COP", "Estrato", 
+    "Area_Construida_m2", "Distancia_CC_SanNicolas_km", 
+    "Conjunto_Cerrado_Num", "Urbana_Rural_Num", "Topografia_Num"
+]
+df = df[columnas_orden]
+
+# Guardar a CSV
+df.to_csv("dataset_inmobiliario_numerico_rionegro.csv", index=False)
+
+print("Dataset numérico generado exitosamente con 5000 registros.")
+print("\n--- Muestra del DataFrame resultante ---")
+print(df.head(10))
