@@ -14,6 +14,18 @@ La justificación del enfoque matricial radica en su capacidad para revelar estr
 
 ## Metodología
 
+- Nos dividimos el trabajo en 2 analisis cada uno, el ultimo analisis fue realizado en conjunto, la creacion del entorno virtual y proyecto de python3 fue lo inicial que realizamos, y para poder trabajar en conjunto, creamos un repositorio de github publico, donde los dos somos colaboradores y trabajamos en nuestras respectivas ramas para el desarrollo del proyecto.
+
+el link del repositorio github es el siguiente, alli puede verificar los commits y el codigo fuente, tambien se subio el dataset generado en el archivo .csv para trabajar con los mismos datos en conjunto.
+
+repo: https://github.com/Jero-Cardona/DataScience-Real-State
+
+ramas del repositorio: 
+- main
+- development (jeronimo)
+- pipe-branch (Felipe)
+
+
 ### Construcción del Dataset
 
 Ante la ausencia de un dataset público consolidado de precios residenciales en Rionegro, se optó por el **Camino B** de la metodología propuesta: la simulación de datos con distribuciones estadísticas realistas. El dataset fue generado con NumPy (`np.random.seed(42)`) y comprende **54.700 registros**, cifra fundamentada en el registro catastral municipal, que reporta aproximadamente 47.000 inmuebles de vivienda; se adicionaron cerca de 7.000 registros para incorporar fincas y propiedades rurales.
